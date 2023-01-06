@@ -1,0 +1,45 @@
+﻿
+.login-body {
+    display: flex;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    height: calc(100vh - 150px);
+    /*background-image: url("https://wallpaperaccess.com/full/2314983.jpg");
+    background-size: cover;*/
+}
+
+
+
+.form-login {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.form-login .form-floating:focus-within {
+    z-index: 2;
+}
+
+    .form-login .username {
+        margin-bottom: 5px;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+        padding: 10px;
+    }
+
+.form-login .password {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.title {
+    color: white;
+    text-shadow: 2px 2px 4px black;
+}
+
+.seed {
+    font-size: 1rem;
+}

@@ -1,0 +1,44 @@
+﻿@page "/graph"
+
+
+
+
+<div>
+    <MudChart ChartType="ChartType.Bar" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" Width="100%" Height="100%"></MudChart>
+</div>
+
+
+@code {
+    private List<ChartSeries> test;
+    private List<Withdraw> _logs { get; set; }
+    private List<string> ItemNames { get; set; }
+    private List<int> Quantity { get; set; }
+
+
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+
+    protected override void OnInitialized()
+    {
+        
+        _logs = WithdrawService.GetAll();
+        ItemNames = _logs.Select(x => x.ItemName).ToList();
+        Quantity = _logs.Select(x => x.Quantity).ToList();
+        XAxisLabels = ItemNames.ToArray();
+        
+        test = new List<ChartSeries>()
+        {
+            new ChartSeries() { Name = "Items Taken Out", Data = Quantity.Select(x=>(double)x).ToArray() },
+        };
+
+    }
+
+
+    public List<ChartSeries> Series //= new List<ChartSeries>()
+    {
+        get { return test;  }
+    }
+    
+    public string[] XAxisLabels { get; set; }
+}
+
+

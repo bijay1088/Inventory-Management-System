@@ -1,0 +1,242 @@
+﻿@page "/inventory"
+
+
+<nav class="navbar navbar-light bg-light justify-content-between">
+    <h1 class="navbar-brand mb-0 h1">Inventory</h1>
+    <button class="btn btn-primary" type="button" @onclick="OpenAddItemDialog">
+        <span class="oi oi-plus" /> Add
+    </button>
+</nav>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Last Taken Out</th>
+        </tr>
+    </thead>
+ <tbody>
+     @foreach (var item in _items)
+     {
+        <tr>
+            <td>@item.ItemName</td>
+            <td>@item.Quantity.ToString()</td>
+                <td>@item.LastTakenOut</td>
+              <button class="btn btn-outline-secondary" type="button" @onclick="()=>OpenWithdrawlItemDialog(item)">
+                    <span class="oi oi-pencil" /> Withdrawl
+                </button>
+                <button class="btn btn-outline-danger" type="button" @onclick="()=>OpenDeleteInventoryDialog(item)">
+                    <span class="oi oi-delete" /> Delete
+                </button>
+        </tr>
+     }
+ </tbody>
+</table>
+
+@if (_showAddItemDialog)
+{
+    <ModalDialog Title="Add Item" OnClose="@OnAddItemDialogClose" OkLabel="Add">
+    <form>
+        <div class="form-floating">
+            <input type="text" class="form-control itemname" @bind="_itemname" placeholder="Item Name" />
+            <label for="floatingInput">Item Name</label>
+        </div>
+        <br>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control quantity" @bind="_quantity" placeholder="Quantity" />
+            <label for="floatingQuantity">Quantity</label>
+        </div>
+        
+  
+        
+        @if (!string.IsNullOrEmpty(_addItemErrorMessage))
+            {
+                <AlertMessage Type="danger" Message="@_addItemErrorMessage" />
+            }
+        </form>
+    </ModalDialog>
+}
+
+@if (_showDeleteItemDialog)
+{
+    <ModalDialog Title="Delete Todo" OnClose="@OnDeleteItemDialogClose" OkLabel="Confirm">
+        <p>Are you sure you want to delete <strong>@_deleteItem.ItemName</strong> task?</p>
+        @if (!string.IsNullOrEmpty(_deleteItemErrorMessage))
+        {
+            <AlertMessage Type="danger" Message="@_deleteItemErrorMessage" />
+        }
+    </ModalDialog>
+}
+
+@if (_showWithdrawItemDialog)
+{
+    <ModalDialog Title="Withdraw Item" OnClose="@OnWithdrawDialogClose" OkLabel="Withdraw">
+        @*<h3>@_inventory.ItemName</h3>*@
+        <h1></h1>
+        <div class="form-floating">
+            <input id="itemname" type="text" class="form-control"  @bind="_inventory.ItemName" readonly/>
+            <label for="itemname">Item Name</label>
+        </div>
+        <br>
+        <div class="form-floating">
+            <input id="quantity" type="text" class="form-control"  @bind="_quantity"  placeholder="Quantity" />
+            <label for="quantity">Quantity</label>
+        </div>
+        <br>
+        <div class="form-floating">
+            <input id="staff" type="text" class="form-control"  @bind="_staff"  placeholder="Staff Name" />
+            <label for="staff">Staff Name</label>
+        </div>
+        
+
+        @if (!string.IsNullOrEmpty(_withdrawErrorMessage))
+        {
+            <AlertMessage Type="danger" Message="@_withdrawErrorMessage" />
+        }
+    </ModalDialog>
+}
+
+
+@code
+{
+    [CascadingParameter]
+    private GlobalState _globalState { get; set; }
+    private List<Item> _items { get; set; }
+    private Item _deleteItem { get; set; }
+    private bool _showAddItemDialog = false;
+    private string _itemname;
+    private int _quantity;
+    private string _staff;
+    private string _addItemErrorMessage { get; set; }
+    private bool _showDeleteItemDialog { get; set; }
+    private string _deleteItemErrorMessage { get; set; }
+    private string _dialogTitle { get; set; }
+    private string _dialogOkLabel { get; set; }
+    private Item _inventory { get; set; }
+    private bool _showEditInventoryDialog { get; set; }
+    private bool _showWithdrawItemDialog { get; set; }
+    private string _withdrawErrorMessage { get; set; }
+    protected bool IsDisabled { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        _items = ItemService.GetAll(); //taking item list from itemservice
+    }
+
+    private void OpenAddItemDialog() //add item dialog
+    {
+        _showAddItemDialog = true;
+        _itemname = "";
+        _quantity = 0;
+        _addItemErrorMessage = "";
+    }
+
+    private void OnAddItemDialogClose(bool inCancel) //after closing item dialog
+    {
+        if (inCancel)
+        {
+            _showAddItemDialog = false;
+            return;
+        }
+        else
+        {
+            try
+            {
+                _addItemErrorMessage = "";
+                _items = ItemService.SaveItems(_itemname, _quantity);
+                _showAddItemDialog = false;
+            }
+            catch (Exception e)
+            {
+ 
+                _addItemErrorMessage = e.Message;
+                
+                
+            }
+            
+        }
+    }
+    private void OnDeleteItemDialogClose(bool isCancel) //after closing delete dialog
+    {
+        if (isCancel)
+        {
+
+            _showDeleteItemDialog = false;
+            _deleteItem = null;
+        }
+        else
+        {
+            try
+            {
+                _deleteItemErrorMessage = "";
+                _items = ItemService.Delete( _deleteItem.Id);
+                _showDeleteItemDialog = false;
+                _deleteItem = null;
+            }
+            catch (Exception e)
+            {
+                _deleteItemErrorMessage = e.Message;
+            }
+        }
+    }
+
+    private void OnWithdrawDialogClose(bool isCancel) //after closing withdraw dialog 
+    {
+        if (isCancel)
+        {
+            _showWithdrawItemDialog = false;
+        }
+
+        else
+        {
+            try
+            {
+                _withdrawErrorMessage = "";
+                
+                if (_staff == null || _staff == "") //if staff name is empty
+                {
+                    throw new Exception("Please enter staff name.");
+                }
+                if (_inventory.Quantity < _quantity) // if withdraw quantity is greater than available quantity
+                {
+                    _withdrawErrorMessage = "Quantity is not enough";
+                }
+                else
+                {
+                    _items = ItemService.WithdrawItem(_inventory.Id, _inventory.ItemName, _quantity); // withdrawing item
+
+                    WithdrawService.SaveLog(_globalState.CurrentUser.Username, _inventory.Id, _inventory.ItemName, _quantity, _staff);  // storing withdraw log in withdrawservice
+                    _showWithdrawItemDialog = false;
+                }
+
+
+
+            }
+            catch (Exception e)
+            {
+                _withdrawErrorMessage = e.Message;
+            }
+        }
+    }
+
+    private void OpenDeleteInventoryDialog(Item inventoryItems)
+    {
+        _deleteItem = inventoryItems;
+        _showDeleteItemDialog = true;
+    }
+
+    private void OpenWithdrawlItemDialog(Item editInventory)
+    {
+        DateTime currentTime = DateTime.Now;
+
+
+        _dialogTitle = "Withdraw Items";
+        _dialogOkLabel = "Withdraw";
+        _inventory = editInventory;
+        _showWithdrawItemDialog = true;
+    }
+
+    
+
+}

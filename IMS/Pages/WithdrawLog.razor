@@ -1,0 +1,43 @@
+﻿@page "/log"
+
+
+<nav class="navbar navbar-light bg-light justify-content-between">
+    <h1 class="navbar-brand mb-0 h1">Withdraw History</h1>
+</nav>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Taken By</th>
+            <th>Approved By</th>
+            <th>Withdraw Date</th>
+        </tr>
+    </thead>
+ <tbody>
+     @foreach (var log in _logs)
+     {
+        <tr>
+            <td>@log.ItemName</td>
+            <td>@log.Quantity.ToString()</td>
+            <td>@log.StaffName</td>
+            <td>@log.ApprovedBy</td>
+            <td>@log.CreatedAt</td>
+        </tr>
+     }
+ </tbody>
+</table>
+
+@code{
+    private List<Withdraw> _logs { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _logs = WithdrawService.GetAll(); // getting all withdraw items
+    }
+    //private string _itemname { get; set; }
+    //private int _quantity { get; set; }
+    //private string staffname { get; set; }
+    //private string approvedby { get; set; }
+    //private DateTime withdrawdate { get; set; }
+}

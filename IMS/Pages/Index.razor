@@ -1,0 +1,18 @@
+﻿@page "/"
+@inject NavigationManager NavManager
+@code {
+    [CascadingParameter] //Taking value from different component
+    private GlobalState _globalState { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (_globalState.CurrentUser == null)
+        {
+            NavManager.NavigateTo("/login"); // Redirecting to login page
+        }
+        else
+        {
+            NavManager.NavigateTo("/users"); // Redirecting to users page
+        }
+    }
+}
